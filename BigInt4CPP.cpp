@@ -17,7 +17,18 @@ public:
 	friend BigInt& operator + (BigInt& num, BigInt& num1);	
 	friend BigInt& operator - (BigInt& num, BigInt& num1);
 	friend BigInt& operator * (BigInt& num, BigInt& num1);
+	friend BigInt& operator += (BigInt& num, BigInt& num1);
+	friend BigInt& operator -= (BigInt& num, BigInt& num1);
+	friend BigInt& operator *= (BigInt& num, BigInt& num1);
+	friend bool operator == (BigInt& num, BigInt& num1);
+	friend bool operator != (BigInt& num, BigInt& num1);
+	friend bool operator > (BigInt& num, BigInt& num1);
+	friend bool operator < (BigInt& num, BigInt& num1);
+	friend bool operator >= (BigInt& num, BigInt& num1);
+	friend bool operator <= (BigInt& num, BigInt& num1);
 	//pending
+	
+	//friend BigInt& operator / (BigInt& num, BigInt& num1);
 
 	void operator = (BigInt num1) {
 
@@ -28,6 +39,8 @@ public:
 
 	void operator = (string s) {
 		
+		vector<int> x;
+
 		if (s[0] == '-') {
 			for (int i = 1; i < s.size(); i++) {
 				number.push_back(static_cast<int>(s[i] - '0'));
@@ -39,8 +52,51 @@ public:
 				number.push_back(static_cast<int>(s[i] - '0'));
 			}
 		}
-
 		
+		x = number;
+		number = BigInt::cleanUp(x);
+		
+	}
+
+
+	static BigInt& cleanUp(BigInt& x) {
+		BigInt y;
+		bool msb = false;;
+		y.negative = x.negative;
+		int i;
+		for (i = 0; i < x.number.size(); i++) {
+			if (x.number[i] != 0) {
+				msb = true;
+				break;
+			}
+		}
+		for (; i < x.number.size(); i++) {
+			y.number.push_back(x.number[i]);
+		}
+		
+		x.number = y.number;
+		
+		return x;
+	}
+
+	static vector<int> cleanUp(vector<int> x) {
+		BigInt y;
+		bool msb = false;;
+		;
+		int i;
+		for (i = 0; i < x.size(); i++) {
+			if (x[i] != 0) {
+				msb = true;
+				break;
+			}
+		}
+		for (; i < x.size(); i++) {
+			y.number.push_back(x[i]);
+		}
+
+		x = y.number;
+
+		return x;
 	}
 
 };
@@ -79,6 +135,7 @@ BigInt& operator + (BigInt& num, BigInt& num1) {
 	if(num.negative) {
 		BigInt::returnNum = num1 - num;
 		//BigInt::returnNum.negative = true;
+		BigInt::returnNum = BigInt::cleanUp(BigInt::returnNum);
 		return BigInt::returnNum;
 	}
 
@@ -111,6 +168,7 @@ BigInt& operator + (BigInt& num, BigInt& num1) {
 	for (int i = 0; i < size; i++) {
 		BigInt::returnNum.number[size - 1 - i] = reversing[i];
 	}
+	BigInt::returnNum = BigInt::cleanUp(BigInt::returnNum);
 	return BigInt::returnNum;
 
 }
@@ -124,6 +182,7 @@ BigInt& operator - (BigInt& num, BigInt& num1) {
 	if (num.negative) {
 		BigInt::returnNum = num + num1;
 		BigInt::returnNum.negative = true;
+		BigInt::returnNum = BigInt::cleanUp(BigInt::returnNum);
 		return BigInt::returnNum;
 	}
 
@@ -158,6 +217,7 @@ BigInt& operator - (BigInt& num, BigInt& num1) {
 			else {
 				BigInt::returnNum.number.push_back(0);
 				BigInt::returnNum.negative = false;
+				BigInt::returnNum = BigInt::cleanUp(BigInt::returnNum);
 				return BigInt::returnNum;
 			}
 		}
@@ -176,35 +236,36 @@ BigInt& operator - (BigInt& num, BigInt& num1) {
 			carry = 0;
 		}
 		else if (big[i + sizediff] == small[i]) {
-			if (carry == 0) {
-				BigInt::returnNum.number.push_back(0);
-				carry = 0;
-			}
-			else if (carry == 1) {
-				BigInt::returnNum.number.push_back(10 + (big[i + sizediff] - small[i] - carry));
-				carry = 1;
-			}
+		if (carry == 0) {
+			BigInt::returnNum.number.push_back(0);
+			carry = 0;
 		}
-		//BigInt::returnNum.number.push_back((big[i + sizediff] - small[i] - carry));
-		//carry = (big[i + sizediff] + small[i] + carry) / 10;
-		//cout << carry << endl;
+		else if (carry == 1) {
+			BigInt::returnNum.number.push_back(10 + (big[i + sizediff] - small[i] - carry));
+			carry = 1;
+		}
+		}
 	}
 	for (int i = sizediff - 1; i >= 0; i--) {
 		if ((big[i] - carry) != 0 && i == 0) {
 			BigInt::returnNum.number.push_back((big[i] - carry));
 			carry = 0;
 		}
-		else if (i != 0) {
-			BigInt::returnNum.number.push_back(10+(big[i] - carry));
+		else if (i != 0 && (big[i] - carry) < 0) {
+			BigInt::returnNum.number.push_back(10 + (big[i] - carry));
 			carry = 1;
 		}
+		else if (i!=0 && (big[i] - carry) >= 0){
+			BigInt::returnNum.number.push_back((big[i] - carry));
+			carry = 0;
+		}
 	}
-	//if (carry > 0) BigInt::returnNum.number.push_back(carry);
 	reversing = BigInt::returnNum.number;
 	size = reversing.size();
 	for (int i = 0; i < size; i++) {
 		BigInt::returnNum.number[size - 1 - i] = reversing[i];
-	} 
+	}
+	BigInt::returnNum = BigInt::cleanUp(BigInt::returnNum);
 	return BigInt::returnNum;
 
 }
@@ -233,7 +294,7 @@ BigInt& operator * (BigInt& num, BigInt& num1) {
 	netSum.number.push_back(0);
 	int carry = 0;
 	int ctr = 0;
-	for (int i = multiplier.number.size()-1; i >=0 ; i--) {
+	for (int i = multiplier.number.size() - 1; i >= 0; i--) {
 		interSum.number.clear();
 		carry = 0;
 		for (int j = multiplicand.number.size() - 1; j >= 0; j--) {
@@ -242,7 +303,7 @@ BigInt& operator * (BigInt& num, BigInt& num1) {
 		}
 		interSum.number.push_back(carry);
 		reversing.clear();
-		for (int x = interSum.number.size() - 1; x >=0 ; x--) {
+		for (int x = interSum.number.size() - 1; x >= 0; x--) {
 			reversing.push_back(interSum.number[x]);
 		}
 		for (int k = 0; k < ctr; k++) {
@@ -253,23 +314,99 @@ BigInt& operator * (BigInt& num, BigInt& num1) {
 		netSum = interSum + netSum;
 	}
 	netSum.number = BigInt::returnNum.number;
+	BigInt::returnNum = BigInt::cleanUp(BigInt::returnNum);
 	return BigInt::returnNum;
 }
 
-//pending
+BigInt& operator += (BigInt& num, BigInt& num1) {
+	num = num + num1;
+	return num;
+}
 
+BigInt& operator -= (BigInt& num, BigInt& num1) {
+	num = num - num1;
+	return num;
+}
+
+BigInt& operator *= (BigInt& num, BigInt& num1) {
+	num = num * num1;
+	return num;
+}
+
+bool operator == (BigInt& num, BigInt& num1) {
+	if (num.number.size() == num1.number.size() && num.negative == num1.negative) {
+
+		for (int i = 0; i < num1.number.size(); i++) {
+			if (num.number[i] != num1.number[i]) return false;
+			else continue;
+		}
+		return true;
+
+	}
+	else return false;
+}
+
+bool operator != (BigInt& num, BigInt& num1) {
+	if (num.number.size() == num1.number.size() && num.negative == num1.negative) {
+
+		for (int i = 0; i < num1.number.size(); i++) {
+			if (num.number[i] != num1.number[i]) return true;
+			else continue;
+		}
+		return false;
+
+	}
+	else return true;
+}
+
+bool operator > (BigInt& num, BigInt& num1) {
+	
+	if (num.number.size() > num1.number.size()) return true;
+	else if (num.number.size() < num1.number.size()) return false;
+	else {
+		for (int i = 0; i < num.number.size(); i++) {
+			if (num.number[i] > num1.number[i]) return true;
+			else if (num.number[i] < num1.number[i]) return false;
+			else if (num.number[i] == num1.number[i]) continue;
+		}
+		return false;
+	}
+
+}
+
+bool operator < (BigInt& num, BigInt& num1) {
+
+	if (num.number.size() < num1.number.size()) return true;
+	else if (num.number.size() > num1.number.size()) return false;
+	else {
+		for (int i = 0; i < num.number.size(); i++) {
+			if (num.number[i] < num1.number[i]) return true;
+			else if (num.number[i] > num1.number[i]) return false;
+			else if (num.number[i] == num1.number[i]) continue;
+		}
+		return false;
+	}
+
+}
+
+bool operator >= (BigInt& num, BigInt& num1) {
+
+	if (num > num1 || num == num1) return true;
+	else return false;
+
+}
+
+bool operator <= (BigInt& num, BigInt& num1) {
+
+	if (num < num1 || num == num1) return true;
+	else return false;
+
+}
 
 
 int main() {
 
 	BigInt x,y,sum,a,b;
-	x = "-256";
-	y = "-64";
-	x = x*y;
-	cout << x;
-	
-	
-	
-
-
+	x = "0000100";
+	cout << BigInt::cleanUp(x) << endl;
 }
