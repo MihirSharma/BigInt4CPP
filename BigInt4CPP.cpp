@@ -15,20 +15,35 @@ public:
 	friend istream& operator >>(istream& in, BigInt& x);
 	friend ostream& operator <<(ostream& out, BigInt& x);
 	friend BigInt& operator + (BigInt& num, BigInt& num1);	
+	friend BigInt& operator + (int& intInput, BigInt& num);
+	friend BigInt& operator + (BigInt& num, int& intInput);
 	friend BigInt& operator - (BigInt& num, BigInt& num1);
+	friend BigInt& operator - (int& intInput, BigInt& num);
+	friend BigInt& operator - (BigInt& num, int& intInput);
 	friend BigInt& operator * (BigInt& num, BigInt& num1);
+	friend BigInt& operator * (int& intInput, BigInt& num);
+	friend BigInt& operator * (BigInt& num, int& intInput);
+	friend BigInt& operator / (BigInt& num, BigInt& num1);
+	friend BigInt& operator / (int& intInput, BigInt& num);
+	friend BigInt& operator / (BigInt& num, int& intInput);
+	friend BigInt& operator % (BigInt& num, BigInt& num1);
+	friend BigInt& operator % (int& intInput, BigInt& num);
+	friend BigInt& operator % (BigInt& num, int& intInput);
 	friend BigInt& operator += (BigInt& num, BigInt& num1);
 	friend BigInt& operator -= (BigInt& num, BigInt& num1);
 	friend BigInt& operator *= (BigInt& num, BigInt& num1);
+	friend BigInt& operator /= (BigInt& num, BigInt& num1);
+	friend BigInt& operator %= (BigInt& num, BigInt& num1);
 	friend bool operator == (BigInt& num, BigInt& num1);
 	friend bool operator != (BigInt& num, BigInt& num1);
 	friend bool operator > (BigInt& num, BigInt& num1);
 	friend bool operator < (BigInt& num, BigInt& num1);
 	friend bool operator >= (BigInt& num, BigInt& num1);
 	friend bool operator <= (BigInt& num, BigInt& num1);
-	//pending
 	
-	//friend BigInt& operator / (BigInt& num, BigInt& num1);
+	
+	
+
 
 	void operator = (BigInt num1) {
 
@@ -57,6 +72,7 @@ public:
 		number = BigInt::cleanUp(x);
 		
 	}
+
 
 
 	static BigInt& cleanUp(BigInt& x) {
@@ -98,6 +114,7 @@ public:
 
 		return x;
 	}
+	
 
 };
 
@@ -133,6 +150,61 @@ BigInt& operator + (BigInt& num, BigInt& num1) {
 	int size;
 
 	if(num.negative) {
+		BigInt::returnNum = num1 - num;
+		//BigInt::returnNum.negative = true;
+		BigInt::returnNum = BigInt::cleanUp(BigInt::returnNum);
+		return BigInt::returnNum;
+	}
+
+	if (num.number.size() > num1.number.size()) {
+
+		big = num.number;
+		small = num1.number;
+	}
+	else {
+
+		big = num1.number;
+		small = num.number;
+	}
+
+	size = small.size();
+	int sizediff = big.size() - small.size();
+	int carry = 0;
+	for (int i = size - 1; i >= 0; i--) {
+		BigInt::returnNum.number.push_back((big[i + sizediff] + small[i] + carry) % 10);
+		carry = (big[i + sizediff] + small[i] + carry) / 10;
+		//cout << carry << endl;
+	}
+	for (int i = sizediff - 1; i >= 0; i--) {
+		BigInt::returnNum.number.push_back((big[i] + carry) % 10);
+		carry = (big[i] + carry) / 10;
+	}
+	if (carry > 0) BigInt::returnNum.number.push_back(carry);
+	reversing = BigInt::returnNum.number;
+	size = reversing.size();
+	for (int i = 0; i < size; i++) {
+		BigInt::returnNum.number[size - 1 - i] = reversing[i];
+	}
+	BigInt::returnNum = BigInt::cleanUp(BigInt::returnNum);
+	return BigInt::returnNum;
+
+}
+
+BigInt& operator + (int& intInput, BigInt& num) {
+	BigInt num1;
+	num1 = to_string(intInput);
+	return num1 + num;
+}
+
+BigInt& operator + (BigInt& num, int& intInput) {
+
+	BigInt num1;
+	num1 = to_string(intInput);
+	BigInt::returnNum.number.clear();
+	vector<int> big, small, reversing;
+	int size;
+
+	if (num.negative) {
 		BigInt::returnNum = num1 - num;
 		//BigInt::returnNum.negative = true;
 		BigInt::returnNum = BigInt::cleanUp(BigInt::returnNum);
@@ -215,12 +287,15 @@ BigInt& operator - (BigInt& num, BigInt& num1) {
 				break;
 			}
 			else {
-				BigInt::returnNum.number.push_back(0);
-				BigInt::returnNum.negative = false;
-				BigInt::returnNum = BigInt::cleanUp(BigInt::returnNum);
-				return BigInt::returnNum;
+				if (i == num.number.size()) {
+					BigInt::returnNum.number.push_back(0);
+					BigInt::returnNum.negative = false;
+					BigInt::returnNum = BigInt::cleanUp(BigInt::returnNum);
+					return BigInt::returnNum;
+				}else continue;
 			}
 		}
+		
 	}
 
 	size = small.size();
@@ -256,6 +331,115 @@ BigInt& operator - (BigInt& num, BigInt& num1) {
 			carry = 1;
 		}
 		else if (i!=0 && (big[i] - carry) >= 0){
+			BigInt::returnNum.number.push_back((big[i] - carry));
+			carry = 0;
+		}
+	}
+	reversing = BigInt::returnNum.number;
+	size = reversing.size();
+	for (int i = 0; i < size; i++) {
+		BigInt::returnNum.number[size - 1 - i] = reversing[i];
+	}
+	BigInt::returnNum = BigInt::cleanUp(BigInt::returnNum);
+	return BigInt::returnNum;
+
+}
+
+BigInt& operator - (int& intInput, BigInt& num) {
+	BigInt num1;
+	num1 = to_string(intInput);
+	return num1 - num;
+}
+
+BigInt& operator - (BigInt& num, int& intInput) {
+
+	BigInt num1;
+	num1 = to_string(intInput);
+	BigInt::returnNum.number.clear();
+	vector<int> big, small, reversing;
+	bool negResult = false;
+	int size;
+	if (num.negative) {
+		BigInt::returnNum = num + num1;
+		BigInt::returnNum.negative = true;
+		BigInt::returnNum = BigInt::cleanUp(BigInt::returnNum);
+		return BigInt::returnNum;
+	}
+
+	//*********************************************************************************************************************************
+	//Check which number is bigger and assign to big and small and set the sign
+	//*********************************************************************************************************************************
+	if (num.number.size() > num1.number.size()) {
+		big = num.number;
+		small = num1.number;
+	}
+	else if (num.number.size() < num1.number.size()) {
+		big = num1.number;
+		small = num.number;
+		BigInt::returnNum.negative = true;
+	}
+	else if (num.number.size() == num1.number.size()) {
+		//*********************************************************************************************************************************
+		//if sizes are euqual then scan the numbers to find the first one with a bigger digit. Assign to big and small and assign sign
+		//*********************************************************************************************************************************
+		for (int i = 0; i < num.number.size(); i++) {
+			if (num.number[i] > num1.number[i]) {
+				big = num.number;
+				small = num1.number;
+				break;
+			}
+			else if (num.number[i] < num1.number[i]) {
+				big = num1.number;
+				small = num.number;
+				negResult = true;
+				break;
+			}
+			else {
+				if (i == num.number.size()) {
+					BigInt::returnNum.number.push_back(0);
+					BigInt::returnNum.negative = false;
+					BigInt::returnNum = BigInt::cleanUp(BigInt::returnNum);
+					return BigInt::returnNum;
+				}
+				else continue;
+			}
+		}
+
+	}
+
+	size = small.size();
+	int sizediff = big.size() - small.size();
+	int carry = 0;
+	for (int i = size - 1; i >= 0; i--) {
+		if (big[i + sizediff] < small[i]) {
+			BigInt::returnNum.number.push_back(10 + (big[i + sizediff] - small[i] - carry));
+			carry = 1;
+		}
+		else if (big[i + sizediff] > small[i]) {
+			BigInt::returnNum.number.push_back((big[i + sizediff] - small[i] - carry));
+			carry = 0;
+		}
+		else if (big[i + sizediff] == small[i]) {
+			if (carry == 0) {
+				BigInt::returnNum.number.push_back(0);
+				carry = 0;
+			}
+			else if (carry == 1) {
+				BigInt::returnNum.number.push_back(10 + (big[i + sizediff] - small[i] - carry));
+				carry = 1;
+			}
+		}
+	}
+	for (int i = sizediff - 1; i >= 0; i--) {
+		if ((big[i] - carry) != 0 && i == 0) {
+			BigInt::returnNum.number.push_back((big[i] - carry));
+			carry = 0;
+		}
+		else if (i != 0 && (big[i] - carry) < 0) {
+			BigInt::returnNum.number.push_back(10 + (big[i] - carry));
+			carry = 1;
+		}
+		else if (i != 0 && (big[i] - carry) >= 0) {
 			BigInt::returnNum.number.push_back((big[i] - carry));
 			carry = 0;
 		}
@@ -318,6 +502,415 @@ BigInt& operator * (BigInt& num, BigInt& num1) {
 	return BigInt::returnNum;
 }
 
+BigInt& operator * (int& intInput, BigInt& num) {
+	BigInt num1;
+	num1 = to_string(intInput);
+	return num1 * num;
+}
+
+BigInt& operator * (BigInt& num, int& intInput) {
+	
+	BigInt num1;
+	num1 = to_string(intInput);
+	BigInt::returnNum.number.clear();
+	vector<int>  reversing;
+	BigInt multiplicand, multiplier, interSum, netSum;;
+	bool negResult;
+
+	if (num.negative ^ num1.negative) {
+		BigInt::returnNum.negative = true;
+	}
+	else if (!(num.negative ^ num1.negative)) {
+		BigInt::returnNum.negative = false;
+	}
+
+	if (num.number.size() > num1.number.size()) {
+		multiplicand.number = num.number;
+		multiplier.number = num1.number;
+	}
+	else {
+		multiplicand.number = num1.number;
+		multiplier.number = num.number;
+	}
+	netSum.number.push_back(0);
+	int carry = 0;
+	int ctr = 0;
+	for (int i = multiplier.number.size() - 1; i >= 0; i--) {
+		interSum.number.clear();
+		carry = 0;
+		for (int j = multiplicand.number.size() - 1; j >= 0; j--) {
+			interSum.number.push_back((multiplier.number[i] * multiplicand.number[j] + carry) % 10);
+			carry = (multiplier.number[i] * multiplicand.number[j] + carry) / 10;
+		}
+		interSum.number.push_back(carry);
+		reversing.clear();
+		for (int x = interSum.number.size() - 1; x >= 0; x--) {
+			reversing.push_back(interSum.number[x]);
+		}
+		for (int k = 0; k < ctr; k++) {
+			reversing.push_back(0);
+		}
+		ctr++;
+		interSum.number = reversing;
+		netSum = interSum + netSum;
+	}
+	netSum.number = BigInt::returnNum.number;
+	BigInt::returnNum = BigInt::cleanUp(BigInt::returnNum);
+	return BigInt::returnNum;
+}
+
+BigInt& operator / (BigInt& num, BigInt& num1) {
+
+	BigInt::returnNum.number.clear();
+	BigInt zeroCheck;
+	zeroCheck = "0";
+	if (zeroCheck == num1){
+		cout <<endl<< "Division by 0 is invalid";
+		exit(1);
+	}
+
+	if (num < num1) {
+		BigInt::returnNum.number.push_back(0);
+		BigInt::returnNum.negative = false;
+		return BigInt::returnNum;
+	}
+
+	BigInt::returnNum.number.clear();
+	if (num.negative ^ num1.negative) {
+		BigInt::returnNum.negative = true;
+	}
+	else if (!(num.negative ^ num1.negative)) {
+		BigInt::returnNum.negative = false;
+	}
+
+	BigInt dividend = num;
+	BigInt divisor = num1;
+	BigInt r, q;
+
+	int size = divisor.number.size();
+
+	
+		int activeIndex = 0;
+		BigInt StepDividend;
+		for (int i = 0; i < size && activeIndex == 0; i++) {
+			StepDividend.number.push_back(dividend.number[activeIndex + i]);
+		}
+		if (StepDividend < dividend && activeIndex == 0) {
+			StepDividend.number.push_back(dividend.number[size]);
+			activeIndex = size;
+		}
+		else activeIndex = size-1;
+		BigInt StepMul;
+		BigInt check;
+		for (int i = 0; i < 10; i++) {
+			check = divisor * i;
+			
+			if (check > StepDividend){
+				int StepQuotient = i-1;
+				StepMul = divisor * StepQuotient;
+				q.number.push_back(StepQuotient);
+				break;
+			}	
+		}
+		r = StepDividend - StepMul;
+		StepDividend.number.clear();
+		
+		while (true)
+		{
+			activeIndex++;
+			if (activeIndex >= dividend.number.size()) break;
+			r.number.push_back(dividend.number[activeIndex]);
+			for (int i = 0; i < 10; i++) {
+				check = divisor * i;
+
+				if (check > r) {
+					int StepQuotient = i - 1;
+					StepMul = divisor * StepQuotient;
+					q.number.push_back(StepQuotient);
+					break;
+				}
+			}
+			r = r - StepMul;
+			StepDividend.number.clear();
+
+		}
+		
+		BigInt::cleanUp(q);
+		BigInt::returnNum = q;
+		
+	
+	return BigInt::returnNum;
+
+}
+
+BigInt& operator / (int& intInput, BigInt& num) {
+	BigInt num1;
+	num1 = to_string(intInput);
+	return num1 / num;
+}
+
+BigInt& operator / (BigInt& num, int& intInput) {
+
+	BigInt num1;
+	num1 = to_string(intInput);
+	BigInt::returnNum.number.clear();
+	BigInt zeroCheck;
+	zeroCheck = "0";
+	if (zeroCheck == num1) {
+		cout << endl << "Division by 0 is invalid";
+		exit(1);
+	}
+
+	if (num < num1) {
+		BigInt::returnNum.number.push_back(0);
+		BigInt::returnNum.negative = false;
+		return BigInt::returnNum;
+	}
+
+	BigInt::returnNum.number.clear();
+	if (num.negative ^ num1.negative) {
+		BigInt::returnNum.negative = true;
+	}
+	else if (!(num.negative ^ num1.negative)) {
+		BigInt::returnNum.negative = false;
+	}
+
+	BigInt dividend = num;
+	BigInt divisor = num1;
+	BigInt r, q;
+
+	int size = divisor.number.size();
+
+
+	int activeIndex = 0;
+	BigInt StepDividend;
+	for (int i = 0; i < size && activeIndex == 0; i++) {
+		StepDividend.number.push_back(dividend.number[activeIndex + i]);
+	}
+	if (StepDividend < dividend && activeIndex == 0) {
+		StepDividend.number.push_back(dividend.number[size]);
+		activeIndex = size;
+	}
+	else activeIndex = size - 1;
+	BigInt StepMul;
+	BigInt check;
+	for (int i = 0; i < 10; i++) {
+		check = divisor * i;
+
+		if (check > StepDividend) {
+			int StepQuotient = i - 1;
+			StepMul = divisor * StepQuotient;
+			q.number.push_back(StepQuotient);
+			break;
+		}
+	}
+	r = StepDividend - StepMul;
+	StepDividend.number.clear();
+
+	while (true)
+	{
+		activeIndex++;
+		if (activeIndex >= dividend.number.size()) break;
+		r.number.push_back(dividend.number[activeIndex]);
+		for (int i = 0; i < 10; i++) {
+			check = divisor * i;
+
+			if (check > r) {
+				int StepQuotient = i - 1;
+				StepMul = divisor * StepQuotient;
+				q.number.push_back(StepQuotient);
+				break;
+			}
+		}
+		r = r - StepMul;
+		StepDividend.number.clear();
+
+	}
+
+	BigInt::cleanUp(q);
+	BigInt::returnNum = q;
+
+
+	return BigInt::returnNum;
+
+}
+
+BigInt& operator % (BigInt& num, BigInt& num1) {
+
+	BigInt::returnNum.number.clear();
+	BigInt zeroCheck;
+	zeroCheck = "0";
+	if (zeroCheck == num1) {
+		cout << endl << "Division by 0 is invalid";
+		exit(1);
+	}
+
+	if (num < num1) {
+		BigInt::returnNum = num;
+		return BigInt::returnNum;
+	}
+
+	BigInt::returnNum.number.clear();
+	if (num.negative ^ num1.negative) {
+		BigInt::returnNum.negative = true;
+	}
+	else if (!(num.negative ^ num1.negative)) {
+		BigInt::returnNum.negative = false;
+	}
+
+	BigInt dividend = num;
+	BigInt divisor = num1;
+	BigInt r, q;
+
+	int size = divisor.number.size();
+
+
+	int activeIndex = 0;
+	BigInt StepDividend;
+	for (int i = 0; i < size && activeIndex == 0; i++) {
+		StepDividend.number.push_back(dividend.number[activeIndex + i]);
+	}
+	if (StepDividend < dividend && activeIndex == 0) {
+		StepDividend.number.push_back(dividend.number[size]);
+		activeIndex = size;
+	}
+	else activeIndex = size - 1;
+	BigInt StepMul;
+	BigInt check;
+	for (int i = 0; i < 10; i++) {
+		check = divisor * i;
+
+		if (check > StepDividend) {
+			int StepQuotient = i - 1;
+			StepMul = divisor * StepQuotient;
+			q.number.push_back(StepQuotient);
+			break;
+		}
+	}
+	r = StepDividend - StepMul;
+	StepDividend.number.clear();
+
+	while (true)
+	{
+		activeIndex++;
+		if (activeIndex >= dividend.number.size()) break;
+		r.number.push_back(dividend.number[activeIndex]);
+		for (int i = 0; i < 10; i++) {
+			check = divisor * i;
+
+			if (check > r) {
+				int StepQuotient = i - 1;
+				StepMul = divisor * StepQuotient;
+				q.number.push_back(StepQuotient);
+				break;
+			}
+		}
+		r = r - StepMul;
+		StepDividend.number.clear();
+
+	}
+
+	BigInt::cleanUp(q);
+	BigInt::returnNum.negative = false;
+	BigInt::returnNum = r;
+
+
+	return BigInt::returnNum;
+
+}
+
+BigInt& operator % (int& intInput, BigInt& num) {
+	BigInt num1;
+	num1 = to_string(intInput);
+	return num1 % num;
+}
+
+BigInt& operator % (BigInt& num, int& intInput) {
+
+	BigInt num1;
+	num1 = to_string(intInput);
+	BigInt::returnNum.number.clear();
+	BigInt zeroCheck;
+	zeroCheck = "0";
+	if (zeroCheck == num1) {
+		cout << endl << "Division by 0 is invalid";
+		exit(1);
+	}
+
+	if (num < num1) {
+		BigInt::returnNum = num;
+		return BigInt::returnNum;
+	}
+
+	BigInt::returnNum.number.clear();
+	if (num.negative ^ num1.negative) {
+		BigInt::returnNum.negative = true;
+	}
+	else if (!(num.negative ^ num1.negative)) {
+		BigInt::returnNum.negative = false;
+	}
+
+	BigInt dividend = num;
+	BigInt divisor = num1;
+	BigInt r, q;
+
+	int size = divisor.number.size();
+
+
+	int activeIndex = 0;
+	BigInt StepDividend;
+	for (int i = 0; i < size && activeIndex == 0; i++) {
+		StepDividend.number.push_back(dividend.number[activeIndex + i]);
+	}
+	if (StepDividend < dividend && activeIndex == 0) {
+		StepDividend.number.push_back(dividend.number[size]);
+		activeIndex = size;
+	}
+	else activeIndex = size - 1;
+	BigInt StepMul;
+	BigInt check;
+	for (int i = 0; i < 10; i++) {
+		check = divisor * i;
+
+		if (check > StepDividend) {
+			int StepQuotient = i - 1;
+			StepMul = divisor * StepQuotient;
+			q.number.push_back(StepQuotient);
+			break;
+		}
+	}
+	r = StepDividend - StepMul;
+	StepDividend.number.clear();
+
+	while (true)
+	{
+		activeIndex++;
+		if (activeIndex >= dividend.number.size()) break;
+		r.number.push_back(dividend.number[activeIndex]);
+		for (int i = 0; i < 10; i++) {
+			check = divisor * i;
+
+			if (check > r) {
+				int StepQuotient = i - 1;
+				StepMul = divisor * StepQuotient;
+				q.number.push_back(StepQuotient);
+				break;
+			}
+		}
+		r = r - StepMul;
+		StepDividend.number.clear();
+
+	}
+
+	BigInt::cleanUp(q);
+	BigInt::returnNum.negative = false;
+	BigInt::returnNum = r;
+
+
+	return BigInt::returnNum;
+
+}
+
 BigInt& operator += (BigInt& num, BigInt& num1) {
 	num = num + num1;
 	return num;
@@ -330,6 +923,16 @@ BigInt& operator -= (BigInt& num, BigInt& num1) {
 
 BigInt& operator *= (BigInt& num, BigInt& num1) {
 	num = num * num1;
+	return num;
+}
+
+BigInt& operator /= (BigInt& num, BigInt& num1) {
+	num = num / num1;
+	return num;
+}
+
+BigInt& operator %= (BigInt& num, BigInt& num1) {
+	num = num % num1;
 	return num;
 }
 
@@ -360,7 +963,7 @@ bool operator != (BigInt& num, BigInt& num1) {
 }
 
 bool operator > (BigInt& num, BigInt& num1) {
-	
+
 	if (num.number.size() > num1.number.size()) return true;
 	else if (num.number.size() < num1.number.size()) return false;
 	else {
@@ -405,8 +1008,7 @@ bool operator <= (BigInt& num, BigInt& num1) {
 
 
 int main() {
-
-	BigInt x,y,sum,a,b;
-	x = "0000100";
-	cout << BigInt::cleanUp(x) << endl;
+	
+	return 0;
+	
 }
